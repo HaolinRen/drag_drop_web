@@ -60,6 +60,15 @@
     height: 600px;
 }
 
+.dg {
+    
+    cursor : move;
+    float : left;
+    /*top : 0px;*/
+    position: absolute;
+    background-color: red;
+}
+
 .node {
   stroke: #fff;
   stroke-width: 1.5px;

@@ -13,7 +13,8 @@
     var svg = d3.select("#g1")
                 .attr("draggable", true).append("svg")
        	        .attr("width", width)
-                .attr("height", height);
+                .attr("height", height)
+                .attr("id", "dd1");
     var svg2 = d3.select("#g2").append("svg")
                 .attr("width", width)
                 .attr("height", height);
@@ -28,15 +29,23 @@
                   .data(nodes)
                   .enter().append("circle")
                   .attr("r", 5)
-                  .call(force.drag);
+                  .call(force.drag);                 
+
     var link2 = svg2.selectAll(".link") 
                    .data(links)
                    .enter().append("line")
-                   .attr("class", "link");
+                   .attr("class", "link")
+                   .on("click", function() {
+
+                  });
     var node2 = svg2.selectAll(".node")
                   .data(nodes)
                   .enter().append("circle")
                   .attr("r", 5)
+                  .on("click", function() {
+                   var   that = this;
+                   document.getElementById("dd1").cloneNode(that);
+                  })
                   .call(force.drag);
     force.on("tick", function() {
     link.attr("x1", function(d) { return d.source.x; })
@@ -59,7 +68,7 @@
         ev.dataTransfer.setData("text", "<svg id='es'></svg>");
     }
     document.getElementById("g1").ondragend = function(ev) {
-        this.draggable = false;
+        // this.draggable = false;
         console.log("drag end");
     }
     
