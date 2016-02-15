@@ -1,0 +1,61 @@
+#tnav {
+	-webkit-background-clip: border-box;
+	-webkit-background-origin: padding-box;
+	-webkit-background-size: auto;
+	-webkit-font-smoothing: antialiased;
+	-webkit-locale: en-US;
+	-webkit-user-select: none;
+	background-attachment: scroll;
+	background-clip: border-box;
+	background-color: rgba(0, 0, 0, 0.8);
+	background-image: none;
+	background-origin: padding-box;
+	background-size: auto;
+	box-sizing: content-box;
+	color: white;
+    position: fixed; 
+	display: block;
+	font-family: 'Myriad Set Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-size: 16px;
+	font-style: normal;
+	font-synthesis: none;
+	font-weight: normal;
+	height: 34px;
+	left: 0px;
+	letter-spacing: normal;
+	line-height: 34px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 0px;
+	max-height: 39px;
+	min-width: 700px;
+	padding: 0px 0px 0px 0px;
+	pointer-events: auto;
+	/*position: absolute;*/
+	right: 0px;
+	text-align: left;
+	text-rendering: optimizelegibility;
+	top: 0px;
+	width: 100%;
+	z-index: 9999;
+}
+
+#title {
+    display: table;
+    pointer-events: none;
+    margin: 0 auto;
+}
+
+#mcontent {
+    margin: 40px 0px 0px 0px;
+    width: 100%;
+}
+
+.graphs {
+    margin: 0px;
+    width : 200px;
+    border: solid 1px;
+    display: inline-block;
+    height: 300px;
+}
