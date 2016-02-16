@@ -53,28 +53,67 @@
 }
 
 .graphs {
+	-webkit-user-select: none;
     margin: 0px;
-    width : 400px;
-    border: solid 1px;
-    display: inline-block;
+    width : 600px;
+    
+    /*display: inline-block;*/
     height: 600px;
+    vertical-align: top;
+}
+
+.graphFrame {
+	display: inline-block;
+	border: solid 1px #999;
+	position: relative;
+}
+
+.cbox {
+	display: none;
+	float : top;
+    top : 0;
+    position: absolute;
+}
+
+.ck {
+
 }
 
 .dg {
-    
     cursor : move;
-    float : left;
-    /*top : 0px;*/
+    float : top;
+    top : 0;
     position: absolute;
-    background-color: red;
+}
+
+#dgs {
+	/*display: none;*/
+	background-color: red;
+	opacity: .45
 }
 
 .node {
   stroke: #fff;
-  stroke-width: 1.5px;
+  stroke-width: 1px;
+}
+
+.dragNode {
+	stroke: #1E90FF;
+	stroke-width : 5px;
+	stroke-opacity : 0.8;
+	/*stroke-linejoin : round*/
 }
 
 .link {
   stroke: #999;
-  stroke-opacity: .6;
+  stroke-width: 1.5px;
+  opacity: 0.8;
 }
+
+.dragLink {
+	stroke: #1E90FF;
+	stroke-width : 7px;
+	stroke-opacity : 0.6;
+	stroke-linecap : round;
+}
+

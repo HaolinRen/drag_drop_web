@@ -90,7 +90,6 @@
         {"name":"Claquesous","group":4},
         {"name":"Montparnasse","group":4},
         {"name":"Toussaint","group":5},
-        {"name":"Child1","group":10},
     ];
     var links = [
         {"source":1,"target":0,"value":1},
@@ -308,22 +307,22 @@
         {"source":59,"target":57,"value":2},
     ];
     
-    var width = 400, height = 600;
+    var width = 600, height = 600;
     var color = d3.scale.category20();
     var force = d3.layout.force()
-                .charge(-120) 
-                .linkDistance(30)
+                .charge(-200) 
+                .linkDistance(50)
                 .size([width, height]);
     var force2 = d3.layout.force()
-                .charge(-120) 
-                .linkDistance(30)
+                .charge(-200) 
+                .linkDistance(50)
                 .size([width, height]);
-    var svg = d3.select("#g1")
-                .attr("draggable", true).append("svg")
+    var svg = d3.select("#gg1")
+                .append("svg")
        	        .attr("width", width)
                 .attr("height", height)
                 .attr("id", "dd1");
-    var svg2 = d3.select("#g2").append("svg")
+    var svg2 = d3.select("#gg2").append("svg")
                 .attr("width", width)
                 .attr("height", height);
     force.nodes(nodes)
@@ -338,43 +337,43 @@
                    .data(links)
                    .enter().append("line")
                    .attr("class", "link");
+    
     var node = svg.selectAll(".node")
                   .data(nodes)
                   .enter().append("circle")
-                  .attr("r", 6)
+                  .attr("r", 8)
+                  .attr("class", "node")
                   .style("fill", function(d) {
                     return color(d.group);
                   })
                   .call(force.drag);                 
 
+
     var link2 = svg2.selectAll(".link") 
                    .data(links2)
                    .enter().append("line")
-                   .attr("class", "link")
-                   .on("click", function() {
-
-                  });
+                   .attr("class", "link");
+                   // .attr("fill", "black");
     var node2 = svg2.selectAll(".node")
                   .data(nodes2)
                   .enter().append("circle")
-                  .attr("r", 5)
+                  .attr("r", 8)
+                  .attr("class", "node")
                   .style("fill", function(d) {
                     return color(d.group);
                   })
-                  .on("click", function() {
-                   var   that = this;
-                   document.getElementById("dd1").cloneNode(that);
-                  })
-                  .call(force.drag);
+                  .call(force2.drag);
     force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
 
-    node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-        
+        node.attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+    });
+    force2.on("tick", function() {
+
     link2.attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
@@ -382,23 +381,122 @@
 
     node2.attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
-  });
-    document.getElementById("g1").ondragstart = function(ev) {
-        ev.dataTransfer.setData("text", "<svg id='es'></svg>");
-    }
-    document.getElementById("g1").ondragend = function(ev) {
-        // this.draggable = false;
-        console.log("drag end");
-    }
+    })
+
+    // document.getElementById("dgs").draggable = true;
+
+    // document.getElementById("dgs").ondragstart = function(ev) {
+    //     ev.dataTransfer.setData("text", "<svg id='es'></svg>");
+    // }
+    // document.getElementById("dgs").ondragend = function(ev) {
+    //     // this.draggable = false;
+    //     console.log("drag end");
+    // }
     
-    document.getElementById("g2").ondragover = function(ev) {
-        ev.preventDefault();
+    // document.getElementById("g2").ondragover = function(ev) {
+    //     ev.preventDefault();
           
+    // }
+    // document.getElementById("g2").ondrop = function(ev) {
+    //     ev.preventDefault();
+    //     var data = ev.dataTransfer.getData("text");
+    //     console.log(data);
+    //     // ev.target.appendChild(data);
+    // }
+    document.getElementById("sc").onchange = function() {
+        var handleBoxes = function(method) {
+            var cboxes = document.getElementsByClassName("cbox");
+            var index, len = cboxes.length;
+            for (index = 0; index < len; index += 1) {
+                cboxes[index].style.display = method;
+            }
+        }
+        if (this.checked == true) {
+            handleBoxes("inline-block");
+            force.stop();
+            force2.stop();
+            
+            node.on("mousedown.drag", null);
+            node.on("mouseover", function(g) {
+                force.stop();
+                console.log(this);
+                if (g.isCovered) {
+                    return;
+                }
+                var x = g.x;
+                var y = g.y;
+                
+                g.isCovered = true;
+
+                svg.append("circle")
+                    .style("fill", "none")
+                    .attr("class", "dragNode")
+                    .attr("r", 10)
+                    .attr("cx", function() {
+                        return x;
+                    })
+                    .attr("cy", function() {
+                        return y;
+                    });
+
+            });
+            link.on("mouseover", function(g) {
+                var x1 = g.source.x, y1 = g.source.y, y2 = g.target.y, x2 = g.target.x;
+                svg.append("line")
+                    .style("fill", "none")
+                    .attr("class", "dragLink")
+                    // .attr("", )
+                    .attr("x1", function() { return x1; })
+                    .attr("x2", function() { return x2; })
+                    .attr("y1", function() { return y1; })
+                    .attr("y2", function() { return y2; });
+
+            });
+            node.on("mouseout", function(g) {
+                g.isCovered = false;
+                svg.selectAll(".dragNode").transition().remove();
+            });
+            link.on("mouseout", function() {
+                svg.selectAll(".dragLink").transition().delay(250).remove();
+            })
+        } else {
+            handleBoxes("none");
+            enableDrag(false);
+            force.resume();
+            force2.resume();
+            link.on("mouseover", null);
+            node.on("mouseover", null);
+            node.call(force.drag);
+            node2.call(force2.drag);
+            document.getElementById("check").checked = false;
+        }
     }
-    document.getElementById("g2").ondrop = function(ev) {
-        ev.preventDefault();
-        var data = ev.dataTransfer.getData("text");
-        console.log(data);
-        // ev.target.appendChild(data);
+    var enableDrag = function(trigger) {
+        var dragPart = document.getElementById("dgs");
+        if (trigger == true) {
+            dragPart.draggable = true;         
+        } else {
+            dragPart.draggable = false;
+        }
+    }
+    document.getElementById("check").onchange = function() {
+        enableDrag(this.checked);
+    }
+    document.getElementById("gg1").ondragend = function() {
+        var rmd = document.getElementById("dgs");
+        rmd.parentNode.removeChild(rmd);
+        document.getElementById("gg1").draggable = true;
+    }
+    document.getElementById("gg1").ondragstart = function() {
+        // document.getElementById("gg1").draggable = false;
+        
+        // var dgs = document.getElementById("dgs");
+        // if (this.checked == true) {
+        //     // dgs.style.display = "block";
+            
+        // } else {
+        //     dgs.style.display = "none";
+        // }
+
     }
 })(); 
