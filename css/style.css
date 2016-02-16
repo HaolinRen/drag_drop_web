@@ -55,7 +55,7 @@
 .graphs {
 	-webkit-user-select: none;
     margin: 0px;
-    width : 600px;
+    width : 500px;
     
     /*display: inline-block;*/
     height: 600px;
@@ -97,23 +97,17 @@
   stroke-width: 1px;
 }
 
-.dragNode {
-	stroke: #1E90FF;
-	stroke-width : 5px;
-	stroke-opacity : 0.8;
-	/*stroke-linejoin : round*/
+.hull {
+  fill: steelblue;
+  stroke: steelblue;
+  stroke-width: 30px;
+  stroke-linejoin: round;
+  opacity: 0.2
 }
 
 .link {
   stroke: #999;
   stroke-width: 1.5px;
   opacity: 0.8;
-}
-
-.dragLink {
-	stroke: #1E90FF;
-	stroke-width : 7px;
-	stroke-opacity : 0.6;
-	stroke-linecap : round;
 }
 

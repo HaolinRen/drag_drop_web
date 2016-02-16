@@ -307,7 +307,8 @@
         {"source":59,"target":57,"value":2},
     ];
     
-    var width = 600, height = 600;
+    var width = 500, height = 580;
+    var mNodes = [];
     var color = d3.scale.category20();
     var force = d3.layout.force()
                 .charge(-200) 
@@ -325,6 +326,9 @@
     var svg2 = d3.select("#gg2").append("svg")
                 .attr("width", width)
                 .attr("height", height);
+
+    var isSelected = false;
+
     force.nodes(nodes)
          .links(links)   
 	     .start();
@@ -333,28 +337,73 @@
         .links(links2)
         .start();
 
-    var link = svg.selectAll(".link") 
-                   .data(links)
-                   .enter().append("line")
-                   .attr("class", "link");
+    var vis = svg.append("g")
+                .append("path")
+                .attr("class", "hull");
+
+    var link = svg.append("g")
+                .selectAll(".link") 
+                .data(links)
+                .enter().append("line")
+                .attr("class", "link");
+
+    function dragstart() {
+        force.stop();
+    }
+
+    function dragmove(d, i) {
+        if (!isSelected) {
+            d.px += d3.event.dx;
+            d.py += d3.event.dy;
+            d.x += d3.event.dx;
+            d.y += d3.event.dy; 
+            tick1();
+        }
+    }
+
+    function dragend(d, i) {
+        if (!isSelected) {
+            d.fixed = true;
+            tick1();
+            force.resume();
+        }
+    }
+
+    function onClick(d) {
+        if (!isSelected) {
+            mNodes = [[0,0]];
+            drawHull(mNodes);
+        } else {
+            mNodes.push([d.x, d.y]);
+            drawHull(mNodes);
+        }
+
+    }
+
+    var node_drag = d3.behavior.drag()
+                    .on("dragstart", dragstart)
+                    .on("drag", dragmove)
+                    .on("dragend", dragend);
     
-    var node = svg.selectAll(".node")
-                  .data(nodes)
-                  .enter().append("circle")
-                  .attr("r", 8)
-                  .attr("class", "node")
-                  .style("fill", function(d) {
+    var node = svg.append("g")
+                .selectAll(".node")
+                .data(nodes)
+                .enter().append("circle")
+                .attr("r", 8)
+                .attr("class", "node")
+                .style("fill", function(d) {
                     return color(d.group);
-                  })
-                  .call(force.drag);                 
+                })
+                .call(node_drag)
+                .on("click", onClick);                 
 
-
-    var link2 = svg2.selectAll(".link") 
+    var link2 = svg2.append("g")
+                .selectAll(".link") 
                    .data(links2)
                    .enter().append("line")
                    .attr("class", "link");
-                   // .attr("fill", "black");
-    var node2 = svg2.selectAll(".node")
+
+    var node2 = svg2.append("g").selectAll(".node")
                   .data(nodes2)
                   .enter().append("circle")
                   .attr("r", 8)
@@ -362,26 +411,43 @@
                   .style("fill", function(d) {
                     return color(d.group);
                   })
-                  .call(force2.drag);
-    force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
+                  .call(node_drag);
+
+    force.on("tick", tick1);
+    force2.on("tick", tick2);
+
+    function drawHull(ds) {
+        console.log(ds);
+        vis.datum(d3.geom.hull(ds)).attr("d", function(d) {
+            return "M" + d.join("L") + "Z";});
+    }
+
+    function tick1() {
+        link.attr("x1", function(d) { return d.source.x > width ? width : d.source.x; })
+            .attr("y1", function(d) { return d.source.y > height ? height : d.source.y; })
+            .attr("x2", function(d) { return d.target.x > width ? width : d.target.x;; })
+            .attr("y2", function(d) { return d.target.y > height ? height : d.target.y; });
+
+        node.attr("cx", function(d) { return d.x > width ? width : d.x; })
+            .attr("cy", function(d) { return d.y > height ? height : d.y; });
+
+        // mNodes = nodes.map(function(i, d) {
+            // return [i.x, i.y]
+        // })
+        // mNodes = [[nodes[1].x, nodes[1].y],[nodes[1].x-3,nodes[1].y-3], [nodes[1].x+3,nodes[1].y]+3];
+        drawHull(mNodes);
+    }
+
+    function tick2() {
+
+        link2.attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
             .attr("x2", function(d) { return d.target.x; })
             .attr("y2", function(d) { return d.target.y; });
 
-        node.attr("cx", function(d) { return d.x; })
+        node2.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; });
-    });
-    force2.on("tick", function() {
-
-    link2.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-    node2.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-    })
+    }
 
     // document.getElementById("dgs").draggable = true;
 
@@ -403,6 +469,8 @@
     //     console.log(data);
     //     // ev.target.appendChild(data);
     // }
+
+    
     document.getElementById("sc").onchange = function() {
         var handleBoxes = function(method) {
             var cboxes = document.getElementsByClassName("cbox");
@@ -413,13 +481,11 @@
         }
         if (this.checked == true) {
             handleBoxes("inline-block");
-            force.stop();
-            force2.stop();
+            isSelected = true;
             
-            node.on("mousedown.drag", null);
             node.on("mouseover", function(g) {
                 force.stop();
-                console.log(this);
+                // node.
                 if (g.isCovered) {
                     return;
                 }
@@ -428,51 +494,36 @@
                 
                 g.isCovered = true;
 
-                svg.append("circle")
-                    .style("fill", "none")
-                    .attr("class", "dragNode")
-                    .attr("r", 10)
-                    .attr("cx", function() {
-                        return x;
-                    })
-                    .attr("cy", function() {
-                        return y;
-                    });
+
 
             });
             link.on("mouseover", function(g) {
                 var x1 = g.source.x, y1 = g.source.y, y2 = g.target.y, x2 = g.target.x;
-                svg.append("line")
-                    .style("fill", "none")
-                    .attr("class", "dragLink")
-                    // .attr("", )
-                    .attr("x1", function() { return x1; })
-                    .attr("x2", function() { return x2; })
-                    .attr("y1", function() { return y1; })
-                    .attr("y2", function() { return y2; });
+                
 
             });
             node.on("mouseout", function(g) {
                 g.isCovered = false;
-                svg.selectAll(".dragNode").transition().remove();
             });
             link.on("mouseout", function() {
-                svg.selectAll(".dragLink").transition().delay(250).remove();
             })
         } else {
+            isSelected = false;
             handleBoxes("none");
             enableDrag(false);
-            force.resume();
-            force2.resume();
             link.on("mouseover", null);
             node.on("mouseover", null);
-            node.call(force.drag);
-            node2.call(force2.drag);
+            node.on("mouseout", null);
+            link.on("mouseout", null);
+            
             document.getElementById("check").checked = false;
         }
     }
     var enableDrag = function(trigger) {
         var dragPart = document.getElementById("dgs");
+        if (!dragPart) {
+            return 0;
+        }
         if (trigger == true) {
             dragPart.draggable = true;         
         } else {
