@@ -48,17 +48,17 @@
 }
 
 #mcontent {
+	-webkit-user-select: none;
     margin: 40px 0px 0px 0px;
     width: 100%;
+    height: auto;
 }
 
 .graphs {
-	-webkit-user-select: none;
     margin: 0px;
-    width : 500px;
-    
-    /*display: inline-block;*/
-    height: 600px;
+    width : 100%;
+    display: inline-block;
+    height: 100%;
     vertical-align: top;
 }
 
@@ -66,30 +66,41 @@
 	display: inline-block;
 	border: solid 1px #999;
 	position: relative;
+	width: 500px;
+	height: 600px
+}
+
+.upLever {
+	display: block;
+
+	position: relative;
+	top : 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.pane {
+	width: 100%;
+	height: 20px;
 }
 
 .cbox {
 	display: none;
-	float : top;
-    top : 0;
-    position: absolute;
-}
-
-.ck {
-
 }
 
 .dg {
-    cursor : move;
-    float : top;
-    top : 0;
     position: absolute;
+    width:100%;
+    height: 100%;
+    cursor: move;
 }
 
 #dgs {
 	/*display: none;*/
-	background-color: red;
-	opacity: .45
+	/*background-color: red;*/
+	/*opacity: .45;*/
+	/*margin-bottom: -500px;*/
 }
 
 .node {

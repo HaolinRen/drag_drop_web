@@ -12,26 +12,34 @@
 	</div>
 </nav>
 <main id="mcontent">
-    <div class="graphs graphFrame" id="g1">
-    <input type="checkbox" id="sc" class="ck"><label for="sc">Select</label>
-      <div class="cbox">
-       <input type="checkbox" id="check" class="ck"><label for="check">Drag</label>
+    <div class="graphFrame" id="g1">
+      <div class="pane">
+        <input type="checkbox" id="sc" class="ck"><label for="sc">Select</label>
+        <div class="cbox">
+         <input type="checkbox" id="check" class="ck"><label for="check">Drag</label>
+        </div>
+        </div>
+      <div class="graphs">
+        <div id="dgs" class="dg"></div>
+        <div id="gg1" class="upLever"></div>
       </div>
-
-      <div id="gg1"></div>
     </div>
     
-    <div class="graphs graphFrame" id="g2">
-    <div class="cbox">
-      <input type="radio" id="r1" name="dtype" class="ck" checked="true"><label for="r1">highlight</label>
-      <input type="radio" id="r2" name="dtype" class="ck"><label for="r2">move</label>
-      <input type="radio" id="r3" name="dtype" class="ck"><label for="r3">merge</label>
+    <div class="graphFrame" id="g2">
+    <div class="pane">
+      <div class="cbox">
+        <input type="radio" id="r1" name="dtype" class="ck" checked="true"><label for="r1">highlight</label>
+        <input type="radio" id="r2" name="dtype" class="ck"><label for="r2">move</label>
+        <input type="radio" id="r3" name="dtype" class="ck"><label for="r3">merge</label>
+        </div>
       </div>
-      <div id="gg2"></div>
+      <div class="graphs">
+        <div id="gg2" class="upLever"></div>
+      </div>
     </div>
 </main>
-<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="scripts/src/graph.js"></script>
+<script src="scripts/extentions/d3.min.js" charset="utf-8"></script>
+<script src="scripts/src/graph.js" charset="utf-8"></script>
 <!-- <script src="scripts/extentions/jquery/jquery.min.js"></script> -->
 <!-- <script src="scripts/extentions/jquery/jquery-ui.min.js"></script> -->
 </body>

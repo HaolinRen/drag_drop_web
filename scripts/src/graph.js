@@ -308,7 +308,7 @@
     ];
     
     var width = 500, height = 580;
-    var mNodes = [];
+    var mNodes = {};
     var color = d3.scale.category20();
     var force = d3.layout.force()
                 .charge(-200) 
@@ -327,6 +327,10 @@
                 .attr("width", width)
                 .attr("height", height);
 
+    var backDrop = d3.select("#dgs").append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+
     var isSelected = false;
 
     force.nodes(nodes)
@@ -337,7 +341,9 @@
         .links(links2)
         .start();
 
-    var vis = svg.append("g")
+    var vinl = backDrop.append("g");
+
+    var vis = backDrop.append("g")
                 .append("path")
                 .attr("class", "hull");
 
@@ -351,6 +357,10 @@
         force.stop();
     }
 
+    function dragstart2() {
+        force2.stop();
+    }
+
     function dragmove(d, i) {
         if (!isSelected) {
             d.px += d3.event.dx;
@@ -361,6 +371,14 @@
         }
     }
 
+    function dragmove2(d, i) {
+        d.px += d3.event.dx;
+            d.py += d3.event.dy;
+            d.x += d3.event.dx;
+            d.y += d3.event.dy; 
+            tick2();
+    }
+
     function dragend(d, i) {
         if (!isSelected) {
             d.fixed = true;
@@ -369,11 +387,19 @@
         }
     }
 
+    function dragend2(d, i) {
+        d.fixed = true;
+        tick2();
+        force2.resume();
+    }
+
     function onClick(d) {
         if (!isSelected) {
-            mNodes = [[0,0]];
-            drawHull(mNodes);
+
         } else {
+            if (mNodes.length == 0) {
+                handleBoxes("inline-block");
+            } 
             mNodes.push([d.x, d.y]);
             drawHull(mNodes);
         }
@@ -385,6 +411,11 @@
                     .on("drag", dragmove)
                     .on("dragend", dragend);
     
+    var node_drag2 = d3.behavior.drag()
+                        .on("dragstart", dragstart2)
+                        .on("drag", dragmove2)
+                        .on("dragend", dragend2);
+
     var node = svg.append("g")
                 .selectAll(".node")
                 .data(nodes)
@@ -411,42 +442,78 @@
                   .style("fill", function(d) {
                     return color(d.group);
                   })
-                  .call(node_drag);
+                  .call(node_drag2);
 
     force.on("tick", tick1);
     force2.on("tick", tick2);
 
     function drawHull(ds) {
-        console.log(ds);
-        vis.datum(d3.geom.hull(ds)).attr("d", function(d) {
+        if (ds.length == 0) {
+            return "";
+        }
+        var tempList = [];
+        if (ds.length == 1) {
+            tempList[0] = ds[0];
+            tempList.push([ds[0][0]+3, ds[0][1]+3]);
+            tempList.push([ds[0][0]-3, ds[0][1]-3]);
+        } else if (ds.length == 2) {
+            tempList[0] = ds[0];
+            tempList[1] = ds[1];
+            tempList.push([ds[0][0]+3, ds[0][1]+3]);
+        } else {
+            tempList = ds;
+        }
+        vis.datum(d3.geom.hull(tempList)).attr("d", function(d) {
             return "M" + d.join("L") + "Z";});
     }
 
+
+    var graphBorder = function(winWidth, winHeight) {
+        var bd = 5;
+        var bx = winWidth - bd;
+        var by = winHeight - bd;
+        return {
+            testX : function(xp) {
+                if (xp < bd) {
+                    return bd;
+                } else {
+                    return xp > bx ? bx : xp;
+                }
+            },
+            testY : function(yp) {
+                if (yp < bd) {
+                    return bd;
+                } else {
+                    return yp > by ? by : yp;
+                }
+            }
+        }
+    }(width, height);
+
+
     function tick1() {
-        link.attr("x1", function(d) { return d.source.x > width ? width : d.source.x; })
-            .attr("y1", function(d) { return d.source.y > height ? height : d.source.y; })
-            .attr("x2", function(d) { return d.target.x > width ? width : d.target.x;; })
-            .attr("y2", function(d) { return d.target.y > height ? height : d.target.y; });
+        link.attr("x1", function(d) { return graphBorder.testX(d.source.x); })
+            .attr("y1", function(d) { return graphBorder.testY(d.source.y); })
+            .attr("x2", function(d) { return graphBorder.testX(d.target.x); })
+            .attr("y2", function(d) { return graphBorder.testY(d.target.y); });
 
-        node.attr("cx", function(d) { return d.x > width ? width : d.x; })
-            .attr("cy", function(d) { return d.y > height ? height : d.y; });
+        node.attr("cx", function(d) { return graphBorder.testX(d.x); })
+            .attr("cy", function(d) { return graphBorder.testY(d.y); });
 
-        // mNodes = nodes.map(function(i, d) {
-            // return [i.x, i.y]
-        // })
-        // mNodes = [[nodes[1].x, nodes[1].y],[nodes[1].x-3,nodes[1].y-3], [nodes[1].x+3,nodes[1].y]+3];
-        drawHull(mNodes);
+        if (isSelected) {
+            drawHull(mNodes);
+        }
     }
 
     function tick2() {
 
-        link2.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+        link2.attr("x1", function(d) { return graphBorder.testX(d.source.x); })
+            .attr("y1", function(d) { return graphBorder.testY(d.source.y); })
+            .attr("x2", function(d) { return graphBorder.testX(d.target.x); })
+            .attr("y2", function(d) { return graphBorder.testY(d.target.y); });
 
-        node2.attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+        node2.attr("cx", function(d) { return graphBorder.testX(d.x); })
+            .attr("cy", function(d) { return graphBorder.testY(d.y); });
     }
 
     // document.getElementById("dgs").draggable = true;
@@ -470,19 +537,20 @@
     //     // ev.target.appendChild(data);
     // }
 
+    var handleBoxes = function(method) {
+        var cboxes = document.getElementsByClassName("cbox");
+        var index, len = cboxes.length;
+        for (index = 0; index < len; index += 1) {
+            cboxes[index].style.display = method;
+        }
+        if (method == "none") {
+            cboxes[0].firstElementChild.checked = false;
+        }
+    }
     
     document.getElementById("sc").onchange = function() {
-        var handleBoxes = function(method) {
-            var cboxes = document.getElementsByClassName("cbox");
-            var index, len = cboxes.length;
-            for (index = 0; index < len; index += 1) {
-                cboxes[index].style.display = method;
-            }
-        }
         if (this.checked == true) {
-            handleBoxes("inline-block");
             isSelected = true;
-            
             node.on("mouseover", function(g) {
                 force.stop();
                 // node.
@@ -493,8 +561,6 @@
                 var y = g.y;
                 
                 g.isCovered = true;
-
-
 
             });
             link.on("mouseover", function(g) {
@@ -509,6 +575,8 @@
             })
         } else {
             isSelected = false;
+            vis.attr("d", "");
+            mNodes = [];
             handleBoxes("none");
             enableDrag(false);
             link.on("mouseover", null);
@@ -516,28 +584,31 @@
             node.on("mouseout", null);
             link.on("mouseout", null);
             
-            document.getElementById("check").checked = false;
         }
     }
     var enableDrag = function(trigger) {
         var dragPart = document.getElementById("dgs");
-        if (!dragPart) {
-            return 0;
-        }
         if (trigger == true) {
+            document.getElementById("gg1").style.display = "none";
             dragPart.draggable = true;         
         } else {
+            document.getElementById("gg1").style.display = "block";
             dragPart.draggable = false;
+        }
+        if (!dragPart.ondragend) {
+            dragPart.ondragend = function() {
+                console.log("ok");
+                // handleBoxes("none");
+                // var rmd = document.getElementById("dgs");
+                // rmd.parentNode.removeChild(rmd);
+                // document.getElementById("gg1").draggable = true;
+            }
         }
     }
     document.getElementById("check").onchange = function() {
         enableDrag(this.checked);
     }
-    document.getElementById("gg1").ondragend = function() {
-        var rmd = document.getElementById("dgs");
-        rmd.parentNode.removeChild(rmd);
-        document.getElementById("gg1").draggable = true;
-    }
+    
     document.getElementById("gg1").ondragstart = function() {
         // document.getElementById("gg1").draggable = false;
         
