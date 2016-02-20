@@ -153,7 +153,8 @@
         {"source":27,"target":23,"value":5},
         {"source":27,"target":25,"value":5},
         {"source":27,"target":24,"value":1},
-        {"source":27,"target":26,"value":1}];
+        {"source":27,"target":26,"value":1}
+        ];
 
     var links2 = [{"source":1,"target":0,"value":1},
         {"source":2,"target":0,"value":8},
@@ -307,22 +308,37 @@
         {"source":59,"target":57,"value":2},
     ];
     
+    links.forEach(function(d) { d.index = nodes[d.source].name + "-" + nodes[d.target].name; });
+    links2.forEach(function(d) { d.index = nodes2[d.source].name + "-" + nodes2[d.target].name; });
     var width = 500, height = 580;
-    var mNodes = {};
+    var mData = {mNodes:[], mEdges:[], indexList:[]};
+    var mData2 = {mNodes:[], mEdges:[], indexList:[]};
+
+    function getMData() {
+        return {
+            mNodes : [],
+            mEdges : [],
+            indexList : []
+        }
+    }
+
     var color = d3.scale.category20();
     var force = d3.layout.force()
                 .charge(-200) 
-                .linkDistance(50)
+                .linkDistance(70)
+                .friction(0.8)
                 .size([width, height]);
     var force2 = d3.layout.force()
                 .charge(-200) 
-                .linkDistance(50)
+                .linkDistance(70)
+                .friction(0.8)
                 .size([width, height]);
     var svg = d3.select("#gg1")
                 .append("svg")
        	        .attr("width", width)
                 .attr("height", height)
                 .attr("id", "dd1");
+
     var svg2 = d3.select("#gg2").append("svg")
                 .attr("width", width)
                 .attr("height", height);
@@ -331,21 +347,42 @@
                     .attr("width", width)
                     .attr("height", height);
 
+    var backDrop2 = d3.select("#ggs").append("svg")
+                    .attr("width", width)
+                    .attr("height", height);
+
     var isSelected = false;
+    var isDrag = false;
+    var dataAdded = false;
 
     force.nodes(nodes)
-         .links(links)   
+         .links(links)
 	     .start();
 
     force2.nodes(nodes2)
         .links(links2)
         .start();
 
-    var vinl = backDrop.append("g");
-
     var vis = backDrop.append("g")
                 .append("path")
                 .attr("class", "hull");
+
+    var vis2 = backDrop2.append("g")
+                .append("path")
+                .attr("class", "hull");
+
+    var vinl = backDrop.append("g")
+                .attr("id", "vinl");
+
+    var vinEdge = vinl.append("g");
+    var vinNode = vinl.append("g");
+
+    var vinl2 = backDrop2.append("g")
+                .attr("id", "vinl2");
+
+    var vinEdge2 = vinl2.append("g");
+    var vinNode2 = vinl2.append("g");
+
 
     var link = svg.append("g")
                 .selectAll(".link") 
@@ -361,7 +398,7 @@
         force2.stop();
     }
 
-    function dragmove(d, i) {
+    function dragmove(d) {
         if (!isSelected) {
             d.px += d3.event.dx;
             d.py += d3.event.dy;
@@ -371,15 +408,22 @@
         }
     }
 
-    function dragmove2(d, i) {
-        d.px += d3.event.dx;
+    function dragmove2(d) {
+        if (!isDrag) {
+            d.px += d3.event.dx;
             d.py += d3.event.dy;
             d.x += d3.event.dx;
-            d.y += d3.event.dy; 
+            d.y += d3.event.dy;
             tick2();
+        }
+        if (dataAdded) {
+            clearBack2();
+            dataAdded = false;
+            svg2.attr("opacity", 1);
+        }
     }
 
-    function dragend(d, i) {
+    function dragend(d) {
         if (!isSelected) {
             d.fixed = true;
             tick1();
@@ -387,7 +431,7 @@
         }
     }
 
-    function dragend2(d, i) {
+    function dragend2(d) {
         d.fixed = true;
         tick2();
         force2.resume();
@@ -397,13 +441,167 @@
         if (!isSelected) {
 
         } else {
-            if (mNodes.length == 0) {
-                handleBoxes("inline-block");
-            } 
-            mNodes.push([d.x, d.y]);
-            drawHull(mNodes);
+            selectNode(d);
+            drawHull(mData);
         }
+    }
 
+    function selectNode(d) {
+        if (mData.indexList.indexOf(d.index) != -1) {
+            var i, len = mData.mNodes.length;
+            if (len == 1) {
+                handleBoxes("none");
+                vis.attr("d", "");
+                mData.mEdges = [];
+            } else {
+                var tempArray = [];
+                mData.mEdges.forEach(function(g) {
+                    if (g.source.index != d.index && g.target.index != d.index) {
+                        tempArray.push(g);
+                    }
+                })
+                mData.mEdges = tempArray;
+            }
+            for (i = 0; i < len; i += 1) {
+                if (d.index == mData.mNodes[i].index) {
+                    mData.mNodes.splice(i,1);
+                    break;
+                }
+            }
+            mData.indexList.splice(mData.indexList.indexOf(d.index),1);
+        } else {
+            if (mData.mNodes.length == 0) {
+                handleBoxes("inline-block");
+            } else {
+                links.forEach(function(g) {
+                    if (d.index == g.target.index) {
+                        mData.indexList.forEach(function(e) {
+                            if (g.source.index == e) {
+                                mData.mEdges.push(g);
+                            }
+                        })
+                    } else if (d.index == g.source.index) {
+                        mData.indexList.forEach(function(e) {
+                            if (g.target.index == e) {
+                                mData.mEdges.push(g);
+                            }
+                        })
+                    }
+                })
+            }
+            mData.indexList.push(d.index);
+            mData.mNodes.push(d);
+        }
+        dropUpdate(mData);
+    }
+
+    function dropUpdate(dropData) {
+        var temp = vinNode.selectAll(".node")
+                .data(dropData.mNodes, function(d) {return d.name;});
+        temp.enter()
+            .append("circle")
+            .attr("r", 8)
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; })
+            .attr("class", "node")
+            .style("fill", function(d) {return color(d.group); });
+
+        temp.exit().remove();
+
+        var tempE = vinEdge.selectAll(".pLink")
+                         .data(dropData.mEdges, function(d) {
+                                return d.index;
+                            });
+        tempE.enter().append("line")
+            .attr("x1", function(d) { return d.source.x })
+            .attr("y1", function(d) { return d.source.y })
+            .attr("x2", function(d) { return d.target.x })
+            .attr("y2", function(d) { return d.target.y })
+            .attr("class", "pLink");
+
+        tempE.exit().remove();
+    }
+
+    function clearBack() {
+        vinNode.selectAll(".node").remove();
+        vinEdge.selectAll(".pLink").remove();
+    }
+
+    function clearBack2() {
+        vinNode2.selectAll(".node").remove();
+        vinEdge2.selectAll(".pLink").remove();
+    }
+
+    function dropUpdate2(dropData) {
+        var temp = vinNode2.selectAll(".node")
+                .data(dropData.mNodes, function(d) {return d.name;});
+        temp.enter()
+            .append("circle")
+            .attr("r", 8)
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; })
+            .attr("class", "node")
+            .style("fill", function(d) {return color(d.group); });
+
+        temp.exit().remove();
+
+        var tempE = vinEdge2.selectAll(".pLink")
+                         .data(dropData.mEdges, function(d) {
+                            return d.index;
+                        });
+        tempE.enter().append("line")
+            .attr("x1", function(d) { return d.source.x })
+            .attr("y1", function(d) { return d.source.y })
+            .attr("x2", function(d) { return d.target.x })
+            .attr("y2", function(d) { return d.target.y })
+            .attr("class", "pLink");
+
+        tempE.exit().remove();
+    }
+
+    function isInList(e, lit) {
+        var res = false;
+        lit.forEach(function(d) {
+            if (d == e) {
+                res = true;
+            }
+        })
+        return res;
+    }
+
+    function edgeOnClick(d) {
+
+        if (!isSelected) {
+
+        } else {
+            var i, len = mData.mEdges.length;
+            var flag = true;
+            for (i = 0; i < len; i += 1) {
+                if (d.index == mData.mEdges[i].index) {
+                    var index1 = 0, index2 = 0;
+                    mData.mEdges.forEach(function(g) {
+                        if (g.source.index == mData.mEdges[i].source.index || g.target.index == mData.mEdges[i].source.index) {
+                            index1 += 1;
+                        }
+                        if (g.target.index == mData.mEdges[i].target.index || g.source.index == mData.mEdges[i].target.index) {
+                            index2 += 1;
+                        }
+                    })
+                    if (index1 > 1 && index2 > 1) {
+                        mData.mEdges.splice(i, 1);
+                    }
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                if (isInList(d.source.index, mData.indexList) && isInList(d.target.index, mData.indexList)) {
+                    mData.mEdges.push(d);
+                }
+            }
+            
+            dropUpdate();
+        }
     }
 
     var node_drag = d3.behavior.drag()
@@ -425,8 +623,7 @@
                 .style("fill", function(d) {
                     return color(d.group);
                 })
-                .call(node_drag)
-                .on("click", onClick);                 
+                .call(node_drag);               
 
     var link2 = svg2.append("g")
                 .selectAll(".link") 
@@ -447,24 +644,32 @@
     force.on("tick", tick1);
     force2.on("tick", tick2);
 
-    function drawHull(ds) {
-        if (ds.length == 0) {
+    function drawHull(dsOb, isTarget) {
+        var ds = dsOb.mNodes;
+        var len = ds.length;
+        if (len == 0) {
             return "";
         }
         var tempList = [];
-        if (ds.length == 1) {
-            tempList[0] = ds[0];
-            tempList.push([ds[0][0]+3, ds[0][1]+3]);
-            tempList.push([ds[0][0]-3, ds[0][1]-3]);
-        } else if (ds.length == 2) {
-            tempList[0] = ds[0];
-            tempList[1] = ds[1];
-            tempList.push([ds[0][0]+3, ds[0][1]+3]);
-        } else {
-            tempList = ds;
+        var i;
+        for (i = 0; i < len; i += 1) {
+            tempList.push([ds[i].x, ds[i].y]);
         }
-        vis.datum(d3.geom.hull(tempList)).attr("d", function(d) {
-            return "M" + d.join("L") + "Z";});
+        if (len == 1) {
+            tempList.push([tempList[0][0]+3, tempList[0][1]+3]);
+            tempList.push([tempList[0][0]-3, tempList[0][1]-3]);
+        } else if (len == 2) {
+            tempList.push([tempList[1][0]-3, tempList[1][1]-3]);
+        }
+        if (isTarget) {
+            vis2.datum(d3.geom.hull(tempList)).attr("d", function(d) {
+                    return "M" + d.join("L") + "Z";
+                });
+        } else {
+            vis.datum(d3.geom.hull(tempList)).attr("d", function(d) {
+                    return "M" + d.join("L") + "Z";
+                });
+        }
     }
 
 
@@ -501,7 +706,7 @@
             .attr("cy", function(d) { return graphBorder.testY(d.y); });
 
         if (isSelected) {
-            drawHull(mNodes);
+            drawHull(mData);
         }
     }
 
@@ -514,28 +719,11 @@
 
         node2.attr("cx", function(d) { return graphBorder.testX(d.x); })
             .attr("cy", function(d) { return graphBorder.testY(d.y); });
+        if (isSelected) {
+            drawHull(mData2, true);
+        }
     }
 
-    // document.getElementById("dgs").draggable = true;
-
-    // document.getElementById("dgs").ondragstart = function(ev) {
-    //     ev.dataTransfer.setData("text", "<svg id='es'></svg>");
-    // }
-    // document.getElementById("dgs").ondragend = function(ev) {
-    //     // this.draggable = false;
-    //     console.log("drag end");
-    // }
-    
-    // document.getElementById("g2").ondragover = function(ev) {
-    //     ev.preventDefault();
-          
-    // }
-    // document.getElementById("g2").ondrop = function(ev) {
-    //     ev.preventDefault();
-    //     var data = ev.dataTransfer.getData("text");
-    //     console.log(data);
-    //     // ev.target.appendChild(data);
-    // }
 
     var handleBoxes = function(method) {
         var cboxes = document.getElementsByClassName("cbox");
@@ -547,78 +735,369 @@
             cboxes[0].firstElementChild.checked = false;
         }
     }
+
+
+    function clearMData(mDataIn) {
+        mDataIn.mNodes = [];
+        mDataIn.indexList = [];
+        mDataIn.mEdges = [];
+    }
     
     document.getElementById("sc").onchange = function() {
         if (this.checked == true) {
             isSelected = true;
-            node.on("mouseover", function(g) {
-                force.stop();
-                // node.
-                if (g.isCovered) {
-                    return;
-                }
-                var x = g.x;
-                var y = g.y;
-                
-                g.isCovered = true;
-
-            });
-            link.on("mouseover", function(g) {
-                var x1 = g.source.x, y1 = g.source.y, y2 = g.target.y, x2 = g.target.x;
-                
-
-            });
-            node.on("mouseout", function(g) {
-                g.isCovered = false;
-            });
-            link.on("mouseout", function() {
-            })
+            force.stop();
+            force2.stop();
+            svg.attr("opacity", 0.6);
+            var brush = svg.insert("g", "g")
+                    .attr("class", "brush")
+                    .call(d3.svg.brush()
+                    .x(d3.scale.identity().domain([0, width]))
+                    .y(d3.scale.identity().domain([0, height]))
+                    .on("brushstart", function() {
+                        
+                    })
+                    .on("brush", function() {
+                        
+                        var extent = d3.event.target.extent();
+                        var dist1 = Math.abs(extent[1][1] - extent[0][1]);
+                        var dist2 = Math.abs(extent[1][0] - extent[0][0]);
+                        if (dist1 < 5 && dist2 < 5) {
+                            return;
+                        }
+                        nodes.forEach(function(d) {
+                            if (extent[0][0] <= d.x && d.x < extent[1][0] && extent[0][1] <= d.y && d.y < extent[1][1]) {
+                                if (!isInList(d.index, mData.indexList)) {
+                                    selectNode(d);
+                                }
+                            } else {
+                                if (isInList(d.index, mData.indexList)) {
+                                    selectNode(d);
+                                }
+                            }
+                        })
+                    })
+                    .on("brushend", function() {
+                        drawHull(mData);
+                        d3.event.target.clear();
+                        d3.select(this).call(d3.event.target);
+                    }));
+            node.on("click", onClick);
+            link.on("mouseover", null);
+            // link.on("click", edgeOnClick);
+            
         } else {
             isSelected = false;
+            nodes.forEach(function(d) { d.selected = false; });
             vis.attr("d", "");
-            mNodes = [];
+            vis2.attr("d", "");
+            svg.select(".brush").remove();
+            svg2.attr("opacity", 1);
+            svg.attr("opacity", 1);
+            node2.filter(function(d) { d.fixed = false; });
+            clearBack();
+            clearBack2();
+            clearMData(mData);
+            clearMData(mData2);
             handleBoxes("none");
             enableDrag(false);
-            link.on("mouseover", null);
-            node.on("mouseover", null);
-            node.on("mouseout", null);
-            link.on("mouseout", null);
+            // link.on("click", null);
+            node.on("click", null);
+            // node.on("mouseout", null);
+            // link.on("mouseout", null);
             
         }
     }
+
+    var movePosi = {
+        startPosi : [0, 0],
+        endPosi : [0, 0],
+        setStartPosi : function(posi) {
+            movePosi.startPosi = posi;
+        },
+        setEndPosi : function(posi) {
+            movePosi.endPosi = posi;
+        },
+        getChangeDist : function() {
+            return [movePosi.endPosi[0]-movePosi.startPosi[0], movePosi.endPosi[1]-movePosi.startPosi[1]];
+        }
+    }
+
     var enableDrag = function(trigger) {
         var dragPart = document.getElementById("dgs");
         if (trigger == true) {
-            document.getElementById("gg1").style.display = "none";
+            clearBack2();
+            vis2.attr("d", "");
+            dragPart.style.zIndex = "9";
+            svg.attr("opacity", 0.2);
+            // document.getElementById("gg1").style.display = "none";
             dragPart.draggable = true;         
         } else {
-            document.getElementById("gg1").style.display = "block";
+            if (isSelected) {
+                svg.attr("opacity", 0.6);
+            }
+            dragPart.style.zIndex = "-1";
+            // document.getElementById("gg1").style.display = "block";
             dragPart.draggable = false;
         }
         if (!dragPart.ondragend) {
-            dragPart.ondragend = function() {
-                console.log("ok");
+            dragPart.ondragend = function(ev) {
+                // ev.preventDefault();
+                document.getElementById("ggs").style.zIndex = "-1";
+                isDrag = false;
+                // enableDrag(false);
                 // handleBoxes("none");
                 // var rmd = document.getElementById("dgs");
                 // rmd.parentNode.removeChild(rmd);
                 // document.getElementById("gg1").draggable = true;
             }
         }
+        if (!dragPart.ondragstart) {
+            dragPart.ondragstart = function(ev){
+                ev.dataTransfer.setData("text", getDragData(mData));
+                document.getElementById("ggs").style.zIndex = "14";
+                isDrag = true;
+                clearBack2();
+                vis2.attr("d", "");
+                clearMData(mData2);
+                svg2.attr("opacity", 1);
+                var e = window.event;
+                movePosi.setStartPosi([e.clientX, e.clientY]);
+            }
+        }
     }
+
+    function getDragData(dropData) {
+        var res = getMData();
+        res.mNodes = dropData.mNodes;
+        res.indexList = dropData.indexList;
+        dropData.mEdges.forEach(function(d) {
+            var tempObj = {};
+            var tmp;
+            for (tmp in d) {
+                if (tmp == "target") {
+                    tempObj.target = d.target.index;
+                } else if (tmp == "source") {
+                    tempObj.source = d.source.index;
+                } else {
+                    tempObj[tmp] = d[tmp];
+                }
+            }
+            res.mEdges.push(tempObj);
+        });
+        return JSON.stringify(res);
+    }
+
+    function moveToOriginal(dropData) {
+        var tempData = getMData();
+        var tempData2 = getMData();
+        node2.filter(function(g) {
+            dropData.mNodes.forEach(function(d) {
+                if (d.name == g.name) {
+                    g.px = d.px;
+                    g.x = d.x;
+                    g.py = d.py;
+                    g.y = d.y;
+                    g.fixed = true;
+                    tempData.indexList.push(g.index);
+                    tempData.mNodes.push(g);
+                    tempData2.mNodes.push(d);
+                }
+            })
+        });
+        links2.forEach(function(d) {
+            dropData.mEdges.forEach(function(e) {
+                if (d.index == e.index) {
+                    tempData2.mEdges.push(e);
+                }
+            })
+        });
+        link2.transition().duration(600)
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+
+        node2.transition().duration(600)
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+
+        mData2 = tempData;
+        dropUpdate2(tempData2);
+        setTimeout(function() {
+            drawHull(mData2, true);
+        }, 600);
+    }
+
+    function mergeMethod(dropData) {
+        mData2 = getMData();
+        node2.filter(function(g) {
+                dropData.mNodes.forEach(function(d) {
+                    if (d.name == g.name) {
+                        g.x = d.x + dist[0] - 500;
+                        g.y = d.y + dist[1];
+                        g.px = d.x;
+                        g.py = d.y;
+                        g.fixed = true;
+                    } else {
+
+                    }
+                })
+            });
+        links2.forEach(function(d) {
+            dropData.mEdges.forEach(function(e) {
+                if (d.index != e.index) {
+
+                }
+            })
+        })
+        link2.transition().duration(600)
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+
+        node2.transition().duration(600)
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+
+        setTimeout(function(){
+            drawHull(mData2, true);
+            dropUpdate2(mData2);
+        }, 400); 
+    }
+
+
+    function highLightMethod(dropData) {
+        var tempData = getMData();
+        var tempData2 = getMData();
+        var dist = movePosi.getChangeDist();
+        node2.filter(function(g) {
+            dropData.mNodes.forEach(function(d) {
+                if (d.name == g.name) {
+                    d.x = g.x;
+                    d.y = g.y;
+                    d.px = g.x;
+                    d.py = g.y; 
+                    g.fixed = true;
+                    tempData2.mNodes.push(g);
+                    tempData.mNodes.push(d);
+                }
+            })
+        });
+        links2.forEach(function(d) {
+            dropData.mEdges.forEach(function(e) {
+                if (d.index == e.index) {
+                    tempData.mEdges.push(e);
+                }
+            })
+        })
+        vis2.attr("d", "");
+        mData2 = tempData2;
+        dropUpdate2(tempData);
+        
+        vinNode2.selectAll(".node").transition().duration(600)
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+
+        vinEdge2.selectAll(".pLink").transition().duration(600)
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+        setTimeout(function() {
+            drawHull(mData2, true);
+        }, 500);
+    }
+
+    function getDropInfo(dropData) {
+
+        drawHull(dropData, true);
+        dropUpdate2(dropData);
+
+        var chos = document.getElementsByClassName("dty");
+        var lenChos = chos.length, choice = "r1";
+        for (var i = 0; i < lenChos; i += 1) {
+            if (chos[i].checked == true) {
+                choice = chos[i].id;
+                break;
+            }
+        }
+        setTimeout(function() {
+            if (choice == "r1") {
+                moveToOriginal(dropData);
+            } else if (choice == "r2") {
+                highLightMethod(dropData);
+            } else {
+
+            }
+        }, 200);
+    }
+
+    function getDropData(strData) {
+        mData2 = JSON.parse(strData);
+        var e = window.event;
+        var tempCompareDict = {};
+        movePosi.setEndPosi([e.clientX, e.clientY]);
+        var dist = movePosi.getChangeDist();
+        mData2.mNodes.forEach(function(d, i) {
+            d.x += (dist[0] - 500);
+            d.y += dist[1];
+            d.px = d.x;
+            d.py = d.y;
+            tempCompareDict[d.index] = i;
+        });
+        mData2.mEdges.forEach(function(d, i, l) {
+            l[i].source = mData2.mNodes[tempCompareDict[d.source]];
+            l[i].target = mData2.mNodes[tempCompareDict[d.target]];
+        });
+    }
+
+    var dropTarget = function() {
+        var field = document.getElementById("ggs");
+        if (!field.ondragover) {
+            field.ondragover = function(ev) {
+                ev.preventDefault();
+                // console.log("over");
+            }
+        }
+        if (!field.ondragenter) {
+            field.ondragenter = function(ev) {
+                ev.preventDefault();
+                field.className += " dropTarget";
+                svg2.attr("opacity", 0.5);
+            }
+        }
+        if (!field.ondragleave) {
+            field.ondragleave = function(ev) {
+                field.className = "dg";
+                // ev.preventDefault();
+                console.log("leave");
+            }
+        }
+        if (!field.ondrop) {
+            field.ondrop = function(ev) {
+                // ev.preventDefault();
+                var transferData = ev.dataTransfer.getData("text");
+                //getJson(transferData);
+                getDropData(transferData);
+                node2.filter(function(d) { d.fixed = false; });
+                
+                dataAdded = true;
+                
+                enableDrag(false);
+                document.getElementById("check").checked = false;
+                field.className = "dg";
+                getDropInfo(mData2);
+                // force2.resume();
+            }
+        }
+    }
+    dropTarget();
+
     document.getElementById("check").onchange = function() {
         enableDrag(this.checked);
     }
-    
-    document.getElementById("gg1").ondragstart = function() {
-        // document.getElementById("gg1").draggable = false;
-        
-        // var dgs = document.getElementById("dgs");
-        // if (this.checked == true) {
-        //     // dgs.style.display = "block";
-            
-        // } else {
-        //     dgs.style.display = "none";
-        // }
 
-    }
+    
 })(); 

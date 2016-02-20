@@ -92,7 +92,7 @@
 .dg {
     position: absolute;
     width:100%;
-    height: 100%;
+    height: 96%;
     cursor: move;
 }
 
@@ -108,17 +108,41 @@
   stroke-width: 1px;
 }
 
+.pNode {
+	stroke: #FFFF00;
+	stroke-width: 4px;
+}
+
+.dropTarget {
+	background-color: steelblue;
+	opacity: 0.1;
+}
+
 .hull {
   fill: steelblue;
   stroke: steelblue;
   stroke-width: 30px;
   stroke-linejoin: round;
-  opacity: 0.2
+  opacity: 0.3
 }
 
 .link {
   stroke: #999;
-  stroke-width: 1.5px;
-  opacity: 0.8;
+  stroke-width: 2px;
+  opacity: 0.6;
+  /*cursor: crosshair;*/
+}
+
+.pLink {
+	stroke: #696969;
+	stroke-width: 2px;
+	opacity: 1;
+}
+
+
+.brush .extent {
+  fill-opacity: .1;
+  stroke: #fff;
+  shape-rendering: crispEdges;
 }
 
