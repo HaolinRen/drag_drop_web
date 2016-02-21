@@ -336,9 +336,9 @@
     var force2 = d3.layout.force()
                 .nodes(nodes2)
                 .links(links2)
-                .charge(-200) 
-                .linkDistance(70)
-                .friction(0.8)
+                .charge(-100) 
+                .linkDistance(80)
+                .friction(0.7)
                 .size([width, height])
                 .on("tick", tick2);
 
@@ -748,6 +748,15 @@
             .attr("cy", function(d) { return graphBorder.testY(d.y); });
         if (isSelected) {
             drawHull(mData2, true);
+            // vinNode2.selectAll(".node")
+            //     .attr("cx", function(d) { return d.x; })
+            //     .attr("cy", function(d) { return d.y; });
+
+            // vinEdge2.selectAll(".pLink")
+            //     .attr("x1", function(d) { return d.source.x; })
+            //     .attr("y1", function(d) { return d.source.y; })
+            //     .attr("x2", function(d) { return d.target.x; })
+            //     .attr("y2", function(d) { return d.target.y; });
         }
     }
 
@@ -955,7 +964,6 @@
             drawHull(tempData, true);
         }, 600);
     }
-
     function mergeMethod(dropData) {
         mData2 = dropData;
         mData2.indexList = [];
@@ -965,6 +973,10 @@
         var nameIndex = mData2.mNodes.map(function(d) {
             return d.name;
         })
+        var edgeIndex = mData2.mEdges.map(function(d, i) {
+            return [d.source.index, d.target.index];
+        })
+
         node2.filter(function(g) {
             mData2.mNodes.forEach(function(d) {
                 if (d.name === g.name) {
@@ -976,46 +988,49 @@
                     indexCompareDict[d.index] = g.index;
                     tempData.mNodes.push(g);
                 }
-                mData2.indexList.push(g.index);
+                // mData2.indexList.push(g.index);
             })
         });
 
-        // mData2.mNodes.forEach(function(d) {
-        //     if (!indexCompareDict[d.index]) {
-        //         indexCompareDict[d.index] = indexIndice;
-        //         nodes2.push(d);
-        //         d.index = indexIndice;
-        //         tempData.mNodes.push(d);
-        //         indexIndice += 1;
-        //     }
-        // })
+        mData2.mNodes.forEach(function(d) {
+            if (!indexCompareDict[d.index]) {
+                indexCompareDict[d.index] = indexIndice;
+                d.index = indexIndice;
+                tempData.mNodes.push(d);
+                nodes2.push(d);
+                indexIndice += 1;
+            }
+        })
 
 
-        // var linksIndexList = links2.map(function(d) {
-        //     return d.index;
-        // })
+        var linksIndexList = links2.map(function(d) {
+            return d.index;
+        })
 
-        // dropData.mEdges.forEach(function(e) {
-        //     if (linksIndexList.indexOf(e.index) == -1) {
-        //         // e.source = nodes2[indexCompareDict[e.source.index]];
-        //         // e.target = nodes2[indexCompareDict[e.target.index]];
-        //         links2.push(e);
-        //     }
-        // })
-        update2();
-        link2.transition().duration(600)
-            .attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+        mData2.mEdges.forEach(function(e, i) {
+            if (linksIndexList.indexOf(e.index) == -1) {
+                e.source = nodes2[indexCompareDict[edgeIndex[i][0]]];
+                e.target = nodes2[indexCompareDict[edgeIndex[i][1]]];
+                console.log(e);
+                links2.push(e);
 
-        node2.transition().duration(600)
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; });
+            }
+        })
+        console.log(links2[122]);
+        // update2();
+        // link2.transition().duration(600)
+        //     .attr("x1", function(d) { return d.source.x; })
+        //     .attr("y1", function(d) { return d.source.y; })
+        //     .attr("x2", function(d) { return d.target.x; })
+        //     .attr("y2", function(d) { return d.target.y; });
 
-        setTimeout(function(){
-            drawHull(tempData, true);
-        }, 600); 
+        // node2.transition().duration(600)
+        //     .attr("cx", function(d) { return d.x; })
+        //     .attr("cy", function(d) { return d.y; });
+
+        // setTimeout(function(){
+        //     drawHull(tempData, true);
+        // }, 600); 
     }
 
 
