@@ -323,6 +323,7 @@
     }
 
     var color = d3.scale.category20();
+
     var force = d3.layout.force()
                 .nodes(nodes)
                 .links(links)
@@ -383,12 +384,24 @@
     var vinEdge2 = vinl2.append("g");
     var vinNode2 = vinl2.append("g");
 
+    var node_drag = d3.behavior.drag()
+                    .on("dragstart", dragstart)
+                    .on("drag", dragmove)
+                    .on("dragend", dragend);
+    
+    var node_drag2 = d3.behavior.drag()
+                        .on("dragstart", dragstart2)
+                        .on("drag", dragmove2)
+                        .on("dragend", dragend2);
 
-    var link = svg.append("g")
-                .selectAll(".link") 
-                .data(links)
-                .enter().append("line")
-                .attr("class", "link");
+    var link = svg.append("g").selectAll(".link");
+
+    var node = svg.append("g").selectAll(".node");               
+
+    var link2 = svg2.append("g").selectAll(".link");
+
+    var node2 = svg2.append("g").selectAll(".node");
+
 
     function dragstart() {
         force.stop();
@@ -585,7 +598,7 @@
                 }
             }
             if (flag) {
-                if (mData.indexList.indexOf(d.source.index)==0 && mData.indexList.indexOf(d.target.index) == 0) {
+                if (mData.indexList.indexOf(d.source.index) != -1 && mData.indexList.indexOf(d.target.index) != -1) {
                     mData.mEdges.push(d);
                 }
             }
@@ -594,50 +607,16 @@
         }
     }
 
-    var node_drag = d3.behavior.drag()
-                    .on("dragstart", dragstart)
-                    .on("drag", dragmove)
-                    .on("dragend", dragend);
-    
-    var node_drag2 = d3.behavior.drag()
-                        .on("dragstart", dragstart2)
-                        .on("drag", dragmove2)
-                        .on("dragend", dragend2);
-
-    var node = svg.append("g")
-                .selectAll(".node")
-                .data(nodes)
-                .enter().append("circle")
-                .attr("r", 8)
-                .attr("class", "node")
-                .style("fill", function(d) {
-                    return color(d.group);
-                })
-                .call(node_drag);               
-
-    var link2 = svg2.append("g")
-                .selectAll(".link") 
-                   .data(links2)
-                   .enter().append("line")
-                   .attr("class", "link");
-
-    var node2 = svg2.append("g").selectAll(".node")
-                  .data(nodes2)
-                  .enter().append("circle")
-                  .attr("r", 8)
-                  .attr("class", "node")
-                  .style("fill", function(d) {
-                    return color(d.group);
-                  })
-                  .call(node_drag2);
-
+    update();
+    force.start();
+    update2();
+    force2.start();
 
     function update() {
 
-        var temp = node.selectAll(".node")
-                .data(nodes, function(d) { return d.name; });
+        node = node.data(nodes, function(d) { return d.name; });
 
-        temp.enter()
+        node.enter()
             .append("circle")
             .attr("r", 8)
             .attr("cx", function(d) { return d.x; })
@@ -646,28 +625,27 @@
             .style("fill", function(d) {return color(d.group); })
             .call(node_drag);
 
-        temp.exit().remove();
+        node.exit().remove();
 
-        var tempE = link.selectAll(".link")
-                         .data(links, function(d) {
-                                return d.index;
-                            });
-        tempE.enter().append("line")
+        link = link.data(links, function(d) {
+                        return d.index;
+                    });
+        link.enter().insert("line", ".node")
             .attr("x1", function(d) { return d.source.x })
             .attr("y1", function(d) { return d.source.y })
             .attr("x2", function(d) { return d.target.x })
             .attr("y2", function(d) { return d.target.y })
             .attr("class", "link");
 
-        tempE.exit().remove();
+        link.exit().remove();
+        
     }
 
     function update2() {
 
-        var temp = node2.selectAll(".node")
-                .data(nodes2, function(d) { return d.name; });
+        node2 = node2.data(nodes2, function(d) { return d.name; });
 
-        temp.enter()
+        node2.enter()
             .append("circle")
             .attr("r", 8)
             .attr("cx", function(d) { return d.x; })
@@ -676,21 +654,20 @@
             .style("fill", function(d) {return color(d.group); })
             .call(node_drag2);
 
-        temp.exit().remove();
+        node2.exit().remove();
         
-        var tempE = link2.selectAll(".link")
-                         .data(links2, function(d) {
-                                return d.index;
-                            });
-        tempE.enter().insert("line", ".node")
+        link2 = link2.data(links2, function(d) {
+                        return d.index;
+                    });
+        link2.enter().insert("line", ".node")
             .attr("x1", function(d) { return d.source.x })
             .attr("y1", function(d) { return d.source.y })
             .attr("x2", function(d) { return d.target.x })
             .attr("y2", function(d) { return d.target.y })
             .attr("class", "link");
 
-        tempE.exit().remove();
-        force2.start();
+        link2.exit().remove();
+        
     }
 
 
@@ -980,42 +957,51 @@
     }
 
     function mergeMethod(dropData) {
-        mData2 = getMData();
+        mData2 = dropData;
+        mData2.indexList = [];
         var tempData = getMData();
-        mData2.mNodes = dropData.mNodes;
-        mData2.mEdges = dropData.mEdges;
         var indexIndice = dropData.mNodes.length;
         var indexCompareDict = {};
+        var nameIndex = mData2.mNodes.map(function(d) {
+            return d.name;
+        })
         node2.filter(function(g) {
-            dropData.mNodes.forEach(function(d) {
-                if (d.name == g.name) {
+            mData2.mNodes.forEach(function(d) {
+                if (d.name === g.name) {
                     g.x = d.x;
                     g.y = d.y;
                     g.px = d.x;
                     g.py = d.y;
+                    g.fixed = true;
                     indexCompareDict[d.index] = g.index;
                     tempData.mNodes.push(g);
-                } else {
-                    indexCompareDict[d.index] = indexIndice;
-                    d.index = indexIndice;
-                    nodes2.push(d); 
-                    tempData.mNodes.push(d);
-                    indexIndice += 1;
                 }
-                mData2.indexList.push(d.index);
+                mData2.indexList.push(g.index);
             })
         });
-        var linksIndexList = links2.map(function(d) {
-            return d.index;
-        })
 
-        dropData.mEdges.forEach(function(e) {
-            if (linksIndexList.indexOf(e.index) == -1) {
-                e.source = nodes2[indexCompareDict[e.source.index]];
-                e.target = nodes2[indexCompareDict[e.target.index]];
-                links2.push(e);
-            }
-        })
+        // mData2.mNodes.forEach(function(d) {
+        //     if (!indexCompareDict[d.index]) {
+        //         indexCompareDict[d.index] = indexIndice;
+        //         nodes2.push(d);
+        //         d.index = indexIndice;
+        //         tempData.mNodes.push(d);
+        //         indexIndice += 1;
+        //     }
+        // })
+
+
+        // var linksIndexList = links2.map(function(d) {
+        //     return d.index;
+        // })
+
+        // dropData.mEdges.forEach(function(e) {
+        //     if (linksIndexList.indexOf(e.index) == -1) {
+        //         // e.source = nodes2[indexCompareDict[e.source.index]];
+        //         // e.target = nodes2[indexCompareDict[e.target.index]];
+        //         links2.push(e);
+        //     }
+        // })
         update2();
         link2.transition().duration(600)
             .attr("x1", function(d) { return d.source.x; })
