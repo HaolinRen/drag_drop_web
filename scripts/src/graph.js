@@ -980,6 +980,9 @@
     }
 
     function mergeMethod(dropData) {
+        console.log(dropData);
+        console.log(nodes2);
+        console.log(edges2);
         mData2 = getMData();
         var tempData = getMData();
         mData2.mNodes = dropData.mNodes;

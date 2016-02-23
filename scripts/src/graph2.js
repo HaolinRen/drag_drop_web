@@ -1,4 +1,6 @@
 (function() {
+    "use strict";
+    var d3 = d3 || {};
     var nodes = [
         {"name":"Myriel","group":1},
         {"name":"Napoleon","group":1},
@@ -30,7 +32,8 @@
         {"name":"Javert","group":4}
         ];
     var nodes2 = [
-        {"name":"Mme.deR","group":2},
+        {"name":"Count","group":1},
+        {"name":"OldMan","group":1},
         {"name":"Isabeau","group":2},
         {"name":"Gervais","group":2},
         {"name":"Tholomyes","group":3},
@@ -67,29 +70,7 @@
         {"name":"Mme.Burgon","group":7},
         {"name":"Gavroche","group":8},
         {"name":"Gillenormand","group":5},
-        {"name":"Magnon","group":5},
-        {"name":"Mlle.Gillenormand","group":5},
-        {"name":"Mme.Pontmercy","group":5},
-        {"name":"Mlle.Vaubois","group":5},
-        {"name":"Lt.Gillenormand","group":5},
-        {"name":"Marius","group":8},
-        {"name":"BaronessT","group":5},
-        {"name":"Mabeuf","group":8},
-        {"name":"Enjolras","group":8},
-        {"name":"Combeferre","group":8},
-        {"name":"Prouvaire","group":8},
-        {"name":"Feuilly","group":8},
-        {"name":"Courfeyrac","group":8},
-        {"name":"Bahorel","group":8},
-        {"name":"Bossuet","group":8},
-        {"name":"Joly","group":8},
-        {"name":"Grantaire","group":8},
-        {"name":"MotherPlutarch","group":9},
-        {"name":"Gueulemer","group":4},
-        {"name":"Babet","group":4},
-        {"name":"Claquesous","group":4},
-        {"name":"Montparnasse","group":4},
-        {"name":"Toussaint","group":5},
+        {"name":"Magnon","group":5}
     ];
     var links = [
         {"source":1,"target":0,"value":1},
@@ -105,7 +86,6 @@
         {"source":11,"target":10,"value":1},
         {"source":11,"target":3,"value":3},
         {"source":11,"target":2,"value":3},
-        {"source":11,"target":0,"value":5},
         {"source":12,"target":11,"value":1},
         {"source":13,"target":11,"value":1},
         {"source":14,"target":11,"value":1},
@@ -116,26 +96,21 @@
         {"source":19,"target":16,"value":4},
         {"source":19,"target":17,"value":4},
         {"source":19,"target":18,"value":4},
-        {"source":20,"target":16,"value":3},
         {"source":20,"target":17,"value":3},
         {"source":20,"target":18,"value":3},
         {"source":20,"target":19,"value":4},
-        {"source":21,"target":16,"value":3},
         {"source":21,"target":17,"value":3},
         {"source":21,"target":18,"value":3},
         {"source":21,"target":19,"value":3},
         {"source":21,"target":20,"value":5},
-        {"source":22,"target":16,"value":3},
         {"source":22,"target":17,"value":3},
         {"source":22,"target":18,"value":3},
         {"source":22,"target":19,"value":3},
-        {"source":22,"target":20,"value":4},
         {"source":22,"target":21,"value":4},
         {"source":23,"target":16,"value":3},
         {"source":23,"target":17,"value":3},
         {"source":23,"target":18,"value":3},
         {"source":23,"target":19,"value":3},
-        {"source":23,"target":20,"value":4},
         {"source":23,"target":21,"value":4},
         {"source":23,"target":22,"value":4},
         {"source":23,"target":12,"value":2},
@@ -143,14 +118,12 @@
         {"source":24,"target":23,"value":2},
         {"source":24,"target":11,"value":7},
         {"source":25,"target":24,"value":13},
-        {"source":25,"target":23,"value":1},
         {"source":25,"target":11,"value":12},
         {"source":26,"target":24,"value":4},
         {"source":26,"target":11,"value":31},
         {"source":26,"target":16,"value":1},
         {"source":26,"target":25,"value":1},
         {"source":27,"target":11,"value":17},
-        {"source":27,"target":23,"value":5},
         {"source":27,"target":25,"value":5},
         {"source":27,"target":24,"value":1},
         {"source":27,"target":26,"value":1}
@@ -166,6 +139,7 @@
         {"source":7,"target":0,"value":1},
         {"source":8,"target":0,"value":2},
         {"source":9,"target":0,"value":1},
+        {"source":10,"target":17,"value":3},
         {"source":11,"target":10,"value":1},
         {"source":11,"target":3,"value":3},
         {"source":11,"target":2,"value":3},
@@ -182,130 +156,35 @@
         {"source":19,"target":18,"value":4},
         {"source":20,"target":16,"value":3},
         {"source":20,"target":17,"value":3},
-        {"source":20,"target":18,"value":3},
         {"source":20,"target":19,"value":4},
         {"source":21,"target":16,"value":3},
         {"source":21,"target":17,"value":3},
-        {"source":21,"target":18,"value":3},
-        {"source":21,"target":19,"value":3},
-        {"source":21,"target":20,"value":5},
-        {"source":22,"target":16,"value":3},
-        {"source":22,"target":17,"value":3},
         {"source":22,"target":18,"value":3},
-        {"source":22,"target":19,"value":3},
-        {"source":22,"target":20,"value":4},
         {"source":22,"target":21,"value":4},
-        {"source":23,"target":16,"value":3},
-        {"source":23,"target":17,"value":3},
         {"source":23,"target":18,"value":3},
-        {"source":23,"target":19,"value":3},
-        {"source":23,"target":20,"value":4},
-        {"source":23,"target":21,"value":4},
-        {"source":23,"target":22,"value":4},
-        {"source":23,"target":12,"value":2},
         {"source":23,"target":11,"value":9},
         {"source":24,"target":23,"value":2},
         {"source":24,"target":11,"value":7},
-        {"source":25,"target":24,"value":13},
-        {"source":25,"target":23,"value":1},
         {"source":25,"target":11,"value":12},
-        {"source":26,"target":24,"value":4},
         {"source":26,"target":11,"value":31},
         {"source":26,"target":16,"value":1},
-        {"source":26,"target":25,"value":1},
         {"source":27,"target":11,"value":17},
-        {"source":27,"target":23,"value":5},
-        {"source":27,"target":25,"value":5},
         {"source":27,"target":24,"value":1},
-        {"source":27,"target":26,"value":1},
         {"source":28,"target":11,"value":8},
         {"source":28,"target":27,"value":1},
         {"source":29,"target":23,"value":1},
-        {"source":29,"target":27,"value":1},
         {"source":29,"target":11,"value":2},
         {"source":30,"target":23,"value":1},
-        {"source":31,"target":30,"value":2},
         {"source":31,"target":11,"value":3},
-        {"source":31,"target":23,"value":2},
-        {"source":31,"target":27,"value":1},
         {"source":32,"target":11,"value":1},
         {"source":33,"target":11,"value":2},
         {"source":33,"target":27,"value":1},
         {"source":34,"target":11,"value":3},
-        {"source":34,"target":29,"value":2},
         {"source":35,"target":11,"value":3},
-        {"source":35,"target":34,"value":3},
-        {"source":35,"target":29,"value":2},
-        {"source":36,"target":34,"value":2},
-        {"source":36,"target":35,"value":2},
         {"source":36,"target":11,"value":2},
-        {"source":36,"target":29,"value":1},
-        {"source":37,"target":34,"value":2},
-        {"source":37,"target":35,"value":2},
-        {"source":37,"target":36,"value":2},
         {"source":37,"target":11,"value":2},
-        {"source":37,"target":29,"value":1},
         {"source":38,"target":34,"value":2},
-        {"source":38,"target":35,"value":2},
-        {"source":38,"target":36,"value":2},
-        {"source":38,"target":37,"value":2},
-        {"source":38,"target":11,"value":2},
-        {"source":38,"target":29,"value":1},
-        {"source":39,"target":25,"value":1},
-        {"source":40,"target":25,"value":1},
-        {"source":41,"target":24,"value":2},
-        {"source":41,"target":25,"value":3},
-        {"source":42,"target":41,"value":2},
-        {"source":42,"target":25,"value":2},
-        {"source":42,"target":24,"value":1},
-        {"source":43,"target":11,"value":3},
-        {"source":43,"target":26,"value":1},
-        {"source":43,"target":27,"value":1},
-        {"source":44,"target":28,"value":3},
-        {"source":44,"target":11,"value":1},
-        {"source":45,"target":28,"value":2},
-        {"source":47,"target":46,"value":1},
-        {"source":48,"target":47,"value":2},
-        {"source":48,"target":25,"value":1},
-        {"source":48,"target":27,"value":1},
-        {"source":48,"target":11,"value":1},
-        {"source":49,"target":26,"value":3},
-        {"source":49,"target":11,"value":2},
-        {"source":50,"target":49,"value":1},
-        {"source":50,"target":24,"value":1},
-        {"source":51,"target":49,"value":9},
-        {"source":51,"target":26,"value":2},
-        {"source":51,"target":11,"value":2},
-        {"source":52,"target":51,"value":1},
-        {"source":52,"target":39,"value":1},
-        {"source":53,"target":51,"value":1},
-        {"source":54,"target":51,"value":2},
-        {"source":54,"target":49,"value":1},
-        {"source":54,"target":26,"value":1},
-        {"source":55,"target":51,"value":6},
-        {"source":55,"target":49,"value":12},
-        {"source":55,"target":39,"value":1},
-        {"source":55,"target":54,"value":1},
-        {"source":55,"target":26,"value":21},
-        {"source":55,"target":11,"value":19},
-        {"source":55,"target":16,"value":1},
-        {"source":55,"target":25,"value":2},
-        {"source":55,"target":41,"value":5},
-        {"source":55,"target":48,"value":4},
-        {"source":56,"target":49,"value":1},
-        {"source":56,"target":55,"value":1},
-        {"source":57,"target":55,"value":1},
-        {"source":57,"target":41,"value":1},
-        {"source":57,"target":48,"value":1},
-        {"source":58,"target":55,"value":7},
-        {"source":58,"target":48,"value":7},
-        {"source":58,"target":27,"value":6},
-        {"source":58,"target":57,"value":1},
-        {"source":58,"target":11,"value":4},
-        {"source":59,"target":58,"value":15},
-        {"source":59,"target":55,"value":5},
-        {"source":59,"target":48,"value":6},
-        {"source":59,"target":57,"value":2},
+        {"source":38,"target":11,"value":2}
     ];
     
     links.forEach(function(d) { d.index = nodes[d.source].name + "-" + nodes[d.target].name; });
@@ -319,7 +198,7 @@
             mNodes : [],
             mEdges : [],
             indexList : []
-        }
+        };
     }
 
     var color = d3.scale.category20();
@@ -336,8 +215,8 @@
     var force2 = d3.layout.force()
                 .nodes(nodes2)
                 .links(links2)
-                .charge(-100) 
-                .linkDistance(80)
+                .charge(-200) 
+                .linkDistance(70)
                 .friction(0.7)
                 .size([width, height])
                 .on("tick", tick2);
@@ -421,6 +300,7 @@
         }
     }
 
+
     function dragmove2(d) {
         if (!isDrag) {
             d.px += d3.event.dx;
@@ -440,14 +320,14 @@
         if (!isSelected) {
             d.fixed = true;
             tick1();
-            force.resume();
+            force.start();
         }
     }
 
     function dragend2(d) {
         d.fixed = true;
         tick2();
-        force2.resume();
+        force2.start();
     }
 
     function onClick(d) {
@@ -465,14 +345,14 @@
             if (len == 1) {
                 handleBoxes("none");
                 vis.attr("d", "");
-                mData.mEdges = [];
+                mData.mEdges = []; 
             } else {
                 var tempArray = [];
                 mData.mEdges.forEach(function(g) {
                     if (g.source.index != d.index && g.target.index != d.index) {
                         tempArray.push(g);
                     }
-                })
+                });
                 mData.mEdges = tempArray;
             }
             for (i = 0; i < len; i += 1) {
@@ -483,7 +363,7 @@
             }
             mData.indexList.splice(mData.indexList.indexOf(d.index),1);
         } else {
-            if (mData.mNodes.length == 0) {
+            if (mData.mNodes.length === 0) {
                 handleBoxes("inline-block");
             } else {
                 links.forEach(function(g) {
@@ -492,15 +372,15 @@
                             if (g.source.index == e) {
                                 mData.mEdges.push(g);
                             }
-                        })
+                        });
                     } else if (d.index == g.source.index) {
                         mData.indexList.forEach(function(e) {
                             if (g.target.index == e) {
                                 mData.mEdges.push(g);
                             }
-                        })
+                        });
                     }
-                })
+                });
             }
             mData.indexList.push(d.index);
             mData.mNodes.push(d);
@@ -526,10 +406,10 @@
                                 return d.index;
                             });
         tempE.enter().append("line")
-            .attr("x1", function(d) { return d.source.x })
-            .attr("y1", function(d) { return d.source.y })
-            .attr("x2", function(d) { return d.target.x })
-            .attr("y2", function(d) { return d.target.y })
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; })
             .attr("class", "pLink");
 
         tempE.exit().remove();
@@ -563,10 +443,10 @@
                             return d.index;
                         });
         tempE.enter().append("line")
-            .attr("x1", function(d) { return d.source.x })
-            .attr("y1", function(d) { return d.source.y })
-            .attr("x2", function(d) { return d.target.x })
-            .attr("y2", function(d) { return d.target.y })
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; })
             .attr("class", "pLink");
 
         tempE.exit().remove();
@@ -575,7 +455,6 @@
     function edgeOnClick(d) {
 
         if (!isSelected) {
-
         } else {
             var i, len = mData.mEdges.length;
             var flag = true;
@@ -589,7 +468,7 @@
                         if (g.target.index == mData.mEdges[i].target.index || g.source.index == mData.mEdges[i].target.index) {
                             index2 += 1;
                         }
-                    })
+                    });
                     if (index1 > 1 && index2 > 1) {
                         mData.mEdges.splice(i, 1);
                     }
@@ -631,10 +510,10 @@
                         return d.index;
                     });
         link.enter().insert("line", ".node")
-            .attr("x1", function(d) { return d.source.x })
-            .attr("y1", function(d) { return d.source.y })
-            .attr("x2", function(d) { return d.target.x })
-            .attr("y2", function(d) { return d.target.y })
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; })
             .attr("class", "link");
 
         link.exit().remove();
@@ -660,10 +539,10 @@
                         return d.index;
                     });
         link2.enter().insert("line", ".node")
-            .attr("x1", function(d) { return d.source.x })
-            .attr("y1", function(d) { return d.source.y })
-            .attr("x2", function(d) { return d.target.x })
-            .attr("y2", function(d) { return d.target.y })
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; })
             .attr("class", "link");
 
         link2.exit().remove();
@@ -674,8 +553,9 @@
     function drawHull(dsOb, isTarget) {
         var ds = dsOb.mNodes;
         var len = ds.length;
-        if (len == 0) {
-            return "";
+        if (len === 0) {
+            vis2.attr("d", "");
+            return;
         }
         var tempList = [];
         var i;
@@ -719,7 +599,7 @@
                     return yp > by ? by : yp;
                 }
             }
-        }
+        };
     }(width, height);
 
 
@@ -746,6 +626,7 @@
 
         node2.attr("cx", function(d) { return graphBorder.testX(d.x); })
             .attr("cy", function(d) { return graphBorder.testY(d.y); });
+
         if (isSelected) {
             drawHull(mData2, true);
             // vinNode2.selectAll(".node")
@@ -770,7 +651,7 @@
         if (method == "none") {
             cboxes[0].firstElementChild.checked = false;
         }
-    }
+    };
 
 
     function clearMData(mDataIn) {
@@ -780,44 +661,44 @@
     }
     
     document.getElementById("sc").onchange = function() {
-        if (this.checked == true) {
+        if (this.checked === true) {
             isSelected = true;
             force.stop();
             force2.stop();
             svg.attr("opacity", 0.6);
-            var brush = svg.insert("g", "g")
-                    .attr("class", "brush")
-                    .call(d3.svg.brush()
-                    .x(d3.scale.identity().domain([0, width]))
-                    .y(d3.scale.identity().domain([0, height]))
-                    .on("brushstart", function() {
-                        
-                    })
-                    .on("brush", function() {
-                        
-                        var extent = d3.event.target.extent();
-                        var dist1 = Math.abs(extent[1][1] - extent[0][1]);
-                        var dist2 = Math.abs(extent[1][0] - extent[0][0]);
-                        if (dist1 < 5 && dist2 < 5) {
-                            return;
-                        }
-                        nodes.forEach(function(d) {
-                            if (extent[0][0] <= d.x && d.x < extent[1][0] && extent[0][1] <= d.y && d.y < extent[1][1]) {
-                                if (mData.indexList.indexOf(d.index) == -1) {
-                                    selectNode(d);
-                                }
-                            } else {
-                                if (mData.indexList.indexOf(d.index) != -1) {
-                                    selectNode(d);
-                                }
+            svg.insert("g", "g")
+                .attr("class", "brush")
+                .call(d3.svg.brush()
+                .x(d3.scale.identity().domain([0, width]))
+                .y(d3.scale.identity().domain([0, height]))
+                .on("brushstart", function() {
+                    
+                })
+                .on("brush", function() {
+                    
+                    var extent = d3.event.target.extent();
+                    var dist1 = Math.abs(extent[1][1] - extent[0][1]);
+                    var dist2 = Math.abs(extent[1][0] - extent[0][0]);
+                    if (dist1 < 5 && dist2 < 5) {
+                        return;
+                    }
+                    nodes.forEach(function(d) {
+                        if (extent[0][0] <= d.x && d.x < extent[1][0] && extent[0][1] <= d.y && d.y < extent[1][1]) {
+                            if (mData.indexList.indexOf(d.index) == -1) {
+                                selectNode(d);
                             }
-                        })
-                    })
-                    .on("brushend", function() {
-                        drawHull(mData);
-                        d3.event.target.clear();
-                        d3.select(this).call(d3.event.target);
-                    }));
+                        } else {
+                            if (mData.indexList.indexOf(d.index) != -1) {
+                                selectNode(d);
+                            }
+                        }
+                    });
+                })
+                .on("brushend", function() {
+                    drawHull(mData);
+                    d3.event.target.clear();
+                    d3.select(this).call(d3.event.target);
+                }));
             node.on("click", onClick);
             link.on("mouseover", null);
             // link.on("click", edgeOnClick);
@@ -843,7 +724,7 @@
             // link.on("mouseout", null);
             
         }
-    }
+    };
 
     var movePosi = {
         startPosi : [0, 0],
@@ -857,11 +738,11 @@
         getChangeDist : function() {
             return [movePosi.endPosi[0]-movePosi.startPosi[0], movePosi.endPosi[1]-movePosi.startPosi[1]];
         }
-    }
+    };
 
     var enableDrag = function(trigger) {
         var dragPart = document.getElementById("dgs");
-        if (trigger == true) {
+        if (trigger === true) {
             clearBack2();
             vis2.attr("d", "");
             dragPart.style.zIndex = "9";
@@ -886,7 +767,7 @@
                 // var rmd = document.getElementById("dgs");
                 // rmd.parentNode.removeChild(rmd);
                 // document.getElementById("gg1").draggable = true;
-            }
+            };
         }
         if (!dragPart.ondragstart) {
             dragPart.ondragstart = function(ev){
@@ -899,9 +780,9 @@
                 svg2.attr("opacity", 1);
                 var e = window.event;
                 movePosi.setStartPosi([e.clientX, e.clientY]);
-            }
+            };
         }
-    }
+    };
 
     function getDragData(dropData) {
         var res = getMData();
@@ -939,14 +820,14 @@
                     tempData.mNodes.push(g);
                     tempData2.mNodes.push(d);
                 }
-            })
+            });
         });
         links2.forEach(function(d) {
             dropData.mEdges.forEach(function(e) {
                 if (d.index == e.index) {
                     tempData2.mEdges.push(e);
                 }
-            })
+            });
         });
         link2.transition().duration(600)
             .attr("x1", function(d) { return d.source.x; })
@@ -958,24 +839,26 @@
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; });
 
-        mData2 = tempData2;
-        dropUpdate2(mData2);
+        mData2 = tempData;
+        dropUpdate2(tempData2);
         setTimeout(function() {
             drawHull(tempData, true);
         }, 600);
     }
+
     function mergeMethod(dropData) {
+        // console.log(dropData);
         mData2 = dropData;
-        mData2.indexList = [];
+        // mData2.indexList = [];
         var tempData = getMData();
-        var indexIndice = dropData.mNodes.length;
+        var indexIndice = nodes2.length;
         var indexCompareDict = {};
-        var nameIndex = mData2.mNodes.map(function(d) {
-            return d.name;
-        })
-        var edgeIndex = mData2.mEdges.map(function(d, i) {
+        // var nameIndex = mData2.mNodes.map(function(d) {
+        //     return d.name;
+        // })
+        var edgeIndex = mData2.mEdges.map(function(d) {
             return [d.source.index, d.target.index];
-        })
+        });
 
         node2.filter(function(g) {
             mData2.mNodes.forEach(function(d) {
@@ -985,59 +868,67 @@
                     g.px = d.x;
                     g.py = d.y;
                     g.fixed = true;
+                    // console.log(d.index);
                     indexCompareDict[d.index] = g.index;
                     tempData.mNodes.push(g);
                 }
                 // mData2.indexList.push(g.index);
-            })
+            });
         });
 
         mData2.mNodes.forEach(function(d) {
-            if (!indexCompareDict[d.index]) {
+            if (!indexCompareDict.hasOwnProperty(d.index)) {
                 indexCompareDict[d.index] = indexIndice;
                 d.index = indexIndice;
                 tempData.mNodes.push(d);
                 nodes2.push(d);
                 indexIndice += 1;
             }
-        })
+        });
 
 
         var linksIndexList = links2.map(function(d) {
             return d.index;
-        })
+        });
+        
 
         mData2.mEdges.forEach(function(e, i) {
             if (linksIndexList.indexOf(e.index) == -1) {
                 e.source = nodes2[indexCompareDict[edgeIndex[i][0]]];
                 e.target = nodes2[indexCompareDict[edgeIndex[i][1]]];
-                console.log(e);
-                links2.push(e);
-
+                
+                if (e.source && e.target) {
+                    links2.push(e);
+                } else {
+                    // console.log(i);
+                }
             }
-        })
-        console.log(links2[122]);
-        // update2();
-        // link2.transition().duration(600)
-        //     .attr("x1", function(d) { return d.source.x; })
-        //     .attr("y1", function(d) { return d.source.y; })
-        //     .attr("x2", function(d) { return d.target.x; })
-        //     .attr("y2", function(d) { return d.target.y; });
+        });
 
-        // node2.transition().duration(600)
-        //     .attr("cx", function(d) { return d.x; })
-        //     .attr("cy", function(d) { return d.y; });
+        link2.transition().duration(600)
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
 
+        node2.transition().duration(600)
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; });
+
+        mData2 = tempData;
         // setTimeout(function(){
         //     drawHull(tempData, true);
-        // }, 600); 
+        // }, 600);
+        setTimeout(function() {
+            update2(); 
+        }, 600);
+        
     }
 
 
     function highLightMethod(dropData) {
         var tempData = getMData();
         var tempData2 = getMData();
-        var dist = movePosi.getChangeDist();
         node2.filter(function(g) {
             dropData.mNodes.forEach(function(d) {
                 if (d.name == g.name) {
@@ -1049,18 +940,18 @@
                     tempData2.mNodes.push(g);
                     tempData.mNodes.push(d);
                 }
-            })
+            });
         });
         links2.forEach(function(d) {
             dropData.mEdges.forEach(function(e) {
                 if (d.index == e.index) {
                     tempData.mEdges.push(e);
                 }
-            })
-        })
+            });
+        });
         vis2.attr("d", "");
-        mData2 = tempData;
-        dropUpdate2(mData2);
+        mData2 = tempData2;
+        dropUpdate2(tempData);
         
         vinNode2.selectAll(".node").transition().duration(600)
             .attr("cx", function(d) { return d.x; })
@@ -1084,7 +975,7 @@
         var chos = document.getElementsByClassName("dty");
         var lenChos = chos.length, choice = "r1";
         for (var i = 0; i < lenChos; i += 1) {
-            if (chos[i].checked == true) {
+            if (chos[i].checked === true) {
                 choice = chos[i].id;
                 break;
             }
@@ -1125,21 +1016,21 @@
             field.ondragover = function(ev) {
                 ev.preventDefault();
                 // console.log("over");
-            }
+            };
         }
         if (!field.ondragenter) {
             field.ondragenter = function(ev) {
                 ev.preventDefault();
                 field.className += " dropTarget";
                 svg2.attr("opacity", 0.5);
-            }
+            };
         }
         if (!field.ondragleave) {
             field.ondragleave = function(ev) {
                 field.className = "dg";
                 // ev.preventDefault();
-                console.log("leave");
-            }
+                // console.log("leave");
+            };
         }
         if (!field.ondrop) {
             field.ondrop = function(ev) {
@@ -1156,14 +1047,14 @@
                 field.className = "dg";
                 getDropInfo(mData2);
                 // force2.resume();
-            }
+            };
         }
-    }
+    };
     dropTarget();
 
     document.getElementById("check").onchange = function() {
         enableDrag(this.checked);
-    }
+    };
 
     
 })(); 
